@@ -85,8 +85,6 @@ def sum_good_parts(parts_map, symbols_map) -> int:
     good_parts = list()
     for parts in parts_map:
         if len(parts) > 0:
-            if DEBUG:
-                print(f"line {line+1} found parts : {parts}")
             for part in parts:
                 good_part = False
 
@@ -96,8 +94,6 @@ def sum_good_parts(parts_map, symbols_map) -> int:
                         # Test if symbol is within bpos, epos
                         if s[1] >= part[1] and s[1] <= part[2]:
                             good_part = True
-                            if DEBUG:
-                                print(f" + good part {part[0]} near symbol ({s[0]}) on same line")
 
                 if line >= 1 and len(symbols_map[line - 1]) > 0:
                     # Test the symbols found on the previous line for adjacency
@@ -105,8 +101,6 @@ def sum_good_parts(parts_map, symbols_map) -> int:
                         # Test if symbol is within bpos, epos
                         if s[1] >= part[1] and s[1] <= part[2]:
                             good_part = True
-                            if DEBUG:
-                                print(f" + good part {part[0]} near symbol ({s[0]}) on previous line")
 
                 if line < engine_map_length and len(symbols_map[line + 1]) > 0:
                     # Test the symbols found on the following line for adjacency
@@ -114,8 +108,6 @@ def sum_good_parts(parts_map, symbols_map) -> int:
                         # Test if symbol is within bpos, epos
                         if s[1] >= part[1] and s[1] <= part[2]:
                             good_part = True
-                            if DEBUG:
-                                print(f" + good part {part[0]} near symbol ({s[0]}) on next line")
 
                 if good_part:
                     good_parts.append(int(part[0]))
@@ -124,20 +116,68 @@ def sum_good_parts(parts_map, symbols_map) -> int:
     return sum(good_parts)
 
 
+def sum_gear_ratios(parts_map, symbols_map) -> int:
+    """Basically the same as stage1, but sifting symbols first"""
+    engine_map_length = len(parts_map) - 1
+    line = 0
+    gear_ratios = list()
+    for symbols in symbols_map:
+        if len(symbols) > 0:
+            for symbol in symbols:
+                # only gears
+                if '*' not in symbol[0]:
+                    continue
+                good_gears = 0
+                gear_ratio = 1
+
+                if len(parts_map[line]) > 0:
+                    # Test the parts found on the same line for adjacency
+                    for p in parts_map[line]:
+                        # Test if parts is within bpos, epos
+                        if symbol[1] >= p[1] and symbol[1] <= p[2]:
+                            good_gears += 1
+                            gear_ratio = gear_ratio * int(p[0])
+
+                if line >= 1 and len(parts_map[line - 1]) > 0:
+                    # Test the parts found on the previous line for adjacency
+                    for p in parts_map[line - 1]:
+                        # Test if parts is within bpos, epos
+                        if symbol[1] >= p[1] and symbol[1] <= p[2]:
+                            good_gears += 1
+                            gear_ratio = gear_ratio * int(p[0])
+
+                if line < engine_map_length and len(parts_map[line + 1]) > 0:
+                    # Test the parts found on the following line for adjacency
+                    for p in parts_map[line + 1]:
+                        # Test if parts is within bpos, epos
+                        if symbol[1] >= p[1] and symbol[1] <= p[2]:
+                            good_gears += 1
+                            gear_ratio = gear_ratio * int(p[0])
+
+                if good_gears >= 2:
+                    gear_ratios.append(gear_ratio)
+
+        line += 1
+    return sum(gear_ratios)
+
+
 if __name__ == "__main__":
+
     def example():
         test_parts_map, test_symbols_map = create_map(TEST)
-        example_sum = sum_good_parts(test_parts_map, test_symbols_map)
-        print(f"Sum of good engine parts (example): {example_sum}")
-        assert example_sum == 4361
+        example_parts_sum = sum_good_parts(test_parts_map, test_symbols_map)
+        print(f"Sum of good engine parts (example): {example_parts_sum}")
 
-    def stage1():
+        example_gear_sum = sum_gear_ratios(test_parts_map, test_symbols_map)
+        print(f"Sum of all gear ratios (example): {example_gear_sum}")
+
+    def puzzle():
         parts_map, symbols_map = create_map(read_url(URL))
-        puzzle_sum = sum_good_parts(parts_map, symbols_map)
-        print(f"Sum of good engine parts (puzzle): {puzzle_sum}")
-        assert puzzle_sum > 294887
+        parts_sum = sum_good_parts(parts_map, symbols_map)
+        print(f"Sum of good engine parts (puzzle): {parts_sum}")
 
-    DEBUG=False
+        gear_sum = sum_gear_ratios(parts_map, symbols_map)
+        print(f"Sum of all gear ratios (puzzle): {gear_sum}")
+
     example()
-    stage1()
-
+    puzzle()
