@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import requests
+from collections import deque
 
 # Session cookie is valid for 10 years!
 COOKIEFILE = ".session_cookie"
@@ -24,11 +25,12 @@ def read_url(url: str) -> str:
     with requests.get(url=url, timeout=5, cookies=session_cookie) as content:
         return content.text
 
+
 def phase1(input: str) -> int:
     scratchcards = list()
-    for line in input.strip().split('\n'):
-        _, info = [x.split(' | ') for x in line.split(': ')]
-        #card_num = card[0].split(' ')[1]
+    for line in input.strip().split("\n"):
+        _, info = [x.split(" | ") for x in line.split(": ")]
+        # card_num = card[0].split(' ')[1]
         winning, chosen = [x.split() for x in info]
         points = 0
         for n in winning:
@@ -36,10 +38,44 @@ def phase1(input: str) -> int:
                 points += 1
             elif n in chosen:
                 points *= 2
-        #print(f"{card_num} -> {winning} -> {chosen} == {points}")
+        # print(f"{card_num} -> {winning} -> {chosen} == {points}")
         scratchcards.append(points)
     return sum(scratchcards)
 
+
+def phase2(input: str) -> int:
+    # First build a dict of all the scratchcards and their matched numbers
+    t = dict()
+    for line in input.strip().split("\n"):
+        card, info = [x.split(" | ") for x in line.split(": ")]
+        id = card[0].split()[1]
+        winning, chosen = [x.split() for x in info]
+        t[id] = {'winning': winning, 'chosen': chosen, 'matches': 0}
+        for n in t[id]['winning']:
+            if n in t[id]['chosen']:
+                t[id]['matches'] += 1
+
+    # Populate a double-ended queue with the contents of the dict
+    queue: deque = deque()
+    for n in t.keys():
+        queue.append([n,t[str(n)]])
+
+    card_tally = 0
+    while len(queue) > 0:
+        # Take off the front of the queue
+        m = queue.popleft()
+        card = m[0]
+        info = m[1]
+        if info['matches'] > 0:
+            for copy in reversed(range(int(card)+1, int(card)+1+info['matches'])):
+                #print(f"  + prepending card number {copy} on queue")
+                queue.appendleft([copy,t[str(copy)]])
+        card_tally += 1
+
+    return card_tally
+
 if __name__ == "__main__":
-    print(f"Test points: {phase1(TEST)}")
-    print(f"Puzzle phase1 points: {phase1(read_url(URL))}")
+    print(f"Phase1 (example) : {phase1(TEST)}")
+    print(f"Phase1           : {phase1(read_url(URL))}")
+    print(f"Phase2 (example) : {phase2(TEST)}")
+    print(f"Phase2           : {phase2(read_url(URL))}")
