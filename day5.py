@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
-import requests
+from helpers import timethis as timethis, read_url as read_url
 import re
-from time import perf_counter
-import logging
 
-# Session cookie is valid for 10 years!
-COOKIEFILE = ".session_cookie"
 URL = "https://adventofcode.com/2023/day/5/input"
 TEST = """seeds: 79 14 55 13
 
@@ -40,35 +36,6 @@ temperature-to-humidity map:
 humidity-to-location map:
 60 56 37
 56 93 4"""
-
-
-def read_cookie(file: str) -> str:
-    """Get the AdventOfCode session cookie we saved earlier"""
-    with open(file, mode="r") as f:
-        return f.read().strip()
-
-
-def read_url(url: str) -> str:
-    """Get the unmolested data from a URL"""
-    session_cookie = {"session": read_cookie(COOKIEFILE)}
-    with requests.get(url=url, timeout=5, cookies=session_cookie) as content:
-        return content.text
-
-
-def timethis(func):
-    """Sample decorator to report a function runtime in milliseconds"""
-
-    def wrapper(*args, **kwargs):
-        # Make sure we accept any number of args / keyword args
-        time_before = perf_counter()
-        retval = func(*args, **kwargs)
-        time_after = perf_counter()
-        time_diff = time_after - time_before
-        # __qualname__ returns the name of the func passed in
-        logging.info(f"({func.__qualname__}) took {time_diff*1000:.4f} msec")
-        return retval
-
-    return wrapper
 
 
 def read_almanac_stage1(input: str) -> dict:
@@ -158,9 +125,6 @@ def seed_to_location(almanac: dict, seed: int) -> int:
 
 
 if __name__ == "__main__":
-    level = logging.INFO
-    fmt = "[%(levelname)s] %(asctime)s - %(message)s"
-    logging.basicConfig(level=level, format=fmt)
 
     def stage1_test():
         almanac = read_almanac_stage1(TEST)
@@ -185,6 +149,7 @@ if __name__ == "__main__":
         lowest_location = min([seed_to_location(almanac, int(x)) for x in large_range])
         print(f"{'Stage2 example':16} : {lowest_location}")
 
+    @timethis
     def stage2():
         """A huge test range, iterate over seed pairs to see progress"""
         almanac = read_almanac_stage2(read_url(URL))
@@ -197,21 +162,24 @@ if __name__ == "__main__":
                 if map_token == "seeds":
                     # skip this non-map key
                     continue
-                src_range_list=list()
-                dst_range_list=list()
+                src_range_list = list()
+                dst_range_list = list()
                 for ranges in _almanac[map_token]:
-                    src_range_list.append((ranges['src'][0],ranges['src'][1]))
+                    src_range_list.append((ranges["src"][0], ranges["src"][1]))
                 src_min = min(src_range_list)[0]
                 src_max = max(src_range_list)[1]
                 for ranges in _almanac[map_token]:
-                    dst_range_list.append((ranges['dst'][0],ranges['dst'][1]))
+                    dst_range_list.append((ranges["dst"][0], ranges["dst"][1]))
                 dst_min = min(dst_range_list)[0]
                 dst_max = max(dst_range_list)[1]
-                _almanac[map_token] = [{
-                    "src": [src_min, src_max],
-                    "dst": [dst_min, dst_max],
-                }]
+                _almanac[map_token] = [
+                    {
+                        "src": [src_min, src_max],
+                        "dst": [dst_min, dst_max],
+                    }
+                ]
             return _almanac
+
         almanac = _optimise_almanac_ranges(almanac)
 
         location = 99999999999
