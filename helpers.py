@@ -3,6 +3,7 @@ import requests
 import logging
 from time import perf_counter
 
+# Session cookie is valid for 10 years!
 COOKIEFILE = ".session_cookie"
 level = logging.INFO
 fmt = "[%(levelname)s] %(asctime)s - %(message)s"
