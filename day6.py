@@ -2,7 +2,6 @@
 from helpers import timethis as timethis, read_url as read_url
 import math
 
-# Session cookie is valid for 10 years!
 URL = "https://adventofcode.com/2023/day/6/input"
 TEST = """Time:      7  15   30
 Distance:  9  40  200"""
@@ -72,25 +71,24 @@ if __name__ == "__main__":
 
     def stage1_test():
         races = get_races(TEST)
-        print(f"Stage1 (example) : {races}")
         ways_to_beat = [strategies(results(x), int(x[1])) for x in races]
-        print(math.prod(ways_to_beat))
+        print(f"{'Stage1 (example)':16} : {math.prod(ways_to_beat)}")
 
     def stage1():
         races = get_races(read_url(URL))
-        print(f"Stage1           : {races}")
         ways_to_beat = [strategies(results(x), int(x[1])) for x in races]
-        print(math.prod(ways_to_beat))
+        print(f"{'Stage1':16} : {math.prod(ways_to_beat)}")
 
     def stage2_test():
         races = get_races_stage2(TEST)
-        print(f"Stage2 (example) : {races}")
-        print(strategies(results(races), int(races[1])))
+        way_to_beat = strategies(results(races), int(races[1]))
+        print( f"{'Stage2 (example)':16} : {way_to_beat}")
 
+    @timethis
     def stage2():
         races = get_races_stage2(read_url(URL))
-        print(f"Stage2           : {races}")
-        print(strategies(results(races), int(races[1])))
+        way_to_beat = strategies(results(races), int(races[1]))
+        print( f"{'Stage2':16} : {way_to_beat}")
 
     stage1_test()
     stage1()
