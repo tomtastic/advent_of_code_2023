@@ -26,10 +26,10 @@ if __name__ == "__main__":
     def stage1_test():
         thing = parse_thing(TEST)
         solve_thing(thing)
-        pass
 
     def stage1():
-        pass
+        thing = parse_thing(read_url(URL))
+        solve_thing(thing)
 
     def stage2_test():
         pass
